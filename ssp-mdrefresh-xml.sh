@@ -1,6 +1,10 @@
 #!/bin/bash
 # Source: https://github.com/bajnokk/ssp-metadata
 
+# Note: the following configuration variables can be overridden by their uppercase
+# equivalent in the environment, for example by calling
+#  export METADATADIR=/some/other/dir; export METADATA_SETS=$(echo href; echo edugain); $0
+
 ### SimpleSAMLphp configuration
 #
 # Base directory of the parsed metadata files
@@ -24,6 +28,15 @@ fingerprint=FE:AE:0B:E8:FB:59:ED:F7:CB:7F:69:DF:19:4F:8B:6D:C7:F6:96:66
 metadata_url=https://metadata.eduid.hu/current/__MDSET__.xml
 
 ### End of configuration section
+#-------------------------------
+
+# Get variables from the environment if they are set
+[ -z "$METADATADIR" ] && METADATADIR=$metadatadir
+[ -z "$METAREFRESH" ] && METAREFRESH=$metarefresh
+[ -z "$FINGERPRINT" ] && FINGERPRINT=$fingerprint
+[ -z "$METADATA_URL" ] && METADATA_URL=$metadata_url
+[ ${#METADATA_SETS[@]} -eq 0 ] && METADATA_SETS="${metadata_sets[@]}"
+
 
 set -e
 SCRIPTNAME=$(basename $0)
@@ -55,12 +68,12 @@ endregexp="/\* End of data which should be added to.*/([^/]+\.php)"
 
 lock
 
-for metadata in ${metadata_sets[*]}; do
+for metadata in ${METADATA_SETS[*]}; do
   downloadfile=$(mktemp)
-  processdir="$metadatadir/metarefresh-$metadata"
+  processdir="$METADATADIR/metarefresh-$metadata"
   processfile=""
   validation_status=unknown
-  url=${metadata_url/__MDSET__/$metadata}
+  url=${METADATA_URL/__MDSET__/$metadata}
   if [ ! -d $processdir ]; then
     echo "Error, expected output directory ($processdir) doesn't exist!" 1>&2
     exit 2
@@ -94,7 +107,7 @@ for metadata in ${metadata_sets[*]}; do
         fi
       fi
     fi
-  done < <(nice php $metarefresh --stdout --validate-fingerprint=$fingerprint $downloadfile)
+  done < <(nice php $METAREFRESH --stdout --validate-fingerprint=$FINGERPRINT $downloadfile)
   if [[ "$validation_status" == "unknown" ]]; then
     echo "Error validating metadata: $url, aborting." 1>&2
     exit 5
