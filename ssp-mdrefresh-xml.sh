@@ -77,6 +77,7 @@ for metadata in ${metadata_sets[*]}; do
       echo "<?php" >$processfile
     elif [[ $line =~ $endregexp ]]; then
       if [ -s $processfile ]; then
+        chmod 644 "$processfile" # Metadata is public, add read permissions to others
         mv "$processfile" "$processdir/${BASH_REMATCH[1]}"
       else
         echo "Will not overwrite $processdir/${BASH_REMATCH[1]} with an empty file" 1>&2
