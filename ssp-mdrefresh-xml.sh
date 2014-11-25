@@ -74,6 +74,7 @@ for metadata in ${metadata_sets[*]}; do
       processfile=$(mktemp --tmpdir=$processdir $metadata.XXXXX)
       # If we can loop over metarefresh output, we can assume it has been validated
       validation_status=validated
+      echo "<?php" >$processfile
     elif [[ $line =~ $endregexp ]]; then
       if [ -s $processfile ]; then
         mv "$processfile" "$processdir/${BASH_REMATCH[1]}"
